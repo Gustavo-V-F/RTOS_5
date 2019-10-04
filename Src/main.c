@@ -46,6 +46,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 osThreadId defaultTaskHandle;
+osThreadId Task_function_handle[2];
+static const char *pcText_task1 = "Task 1 is running.\r\n";
+static const char *pcText_task2 = "Task 2 is running.\r\n";
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -54,6 +57,7 @@ osThreadId defaultTaskHandle;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void StartDefaultTask(void const * argument);
+void vTask_function(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -93,6 +97,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -120,6 +126,12 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  /* definition of Task and creation of Task1 and Task2 */
+  osThreadDef(Task1, vTask_function, osPriorityAboveNormal, 1, 100);
+  osThreadDef(Task2, vTask_function, osPriorityHigh, 1, 100);
+  Task_function_handle[0] = osThreadCreate(osThread(Task1), (void *) pcText_task1);
+  Task_function_handle[1] = osThreadCreate(osThread(Task2), (void *) pcText_task2);
+
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -213,7 +225,7 @@ void StartDefaultTask(void const * argument)
     
                  
   /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
+  //MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -222,6 +234,29 @@ void StartDefaultTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END 5 */ 
+}
+
+/* USER CODE BEGIN Header_vTask_function */
+/**
+  * @brief  Function implementing the vTask_function thread.
+  * @param  argument: pcTaskName 
+  * @retval None
+  */
+/* USER CODE END Header_vTask_function */
+void vTask_function(void const * argument)
+{
+
+  /* USER CODE BEGIN 6 */
+  char *pcTask_name;
+  pcTask_name = (char *) argument; 
+  /* Infinite loop */
+  for(;;)
+  {
+    printf(pcTask_name);
+    osDelay(200);
+  }
+  osThreadTerminate(osThreadGetId()); /* Not supposed to reach here */
+  /* USER CODE END 6 */ 
 }
 
 /**
